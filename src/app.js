@@ -33,18 +33,11 @@ app.get("", (req, res) => {
     res.render("index");
 });
 
-app.get("/genres", async (req, res) => {
-    try {
-        const token = await APIController._getToken();
-        const genres = await APIController._getGenres(token);
-        res.json(genres);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`Server running on port ${port}.`);
+    const token = await APIController._getToken();
+    const genres = await APIController._getGenres(token);
+    console.log(genres);
 });
 
 module.exports = app;
@@ -83,7 +76,7 @@ const APIController = (() => {
         );
 
         const data = await result.json();
-        return data.categories;
+        return data.categories.items;
     };
 
     return {
