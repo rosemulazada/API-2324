@@ -64,7 +64,7 @@ const generateRandomString = (length) => {
 
 app.get("/login", function (req, res) {
     var state = generateRandomString(16);
-    var scope = "";
+    var scope = "user-read-email user-top-read";
 
     res.redirect(
         "https://accounts.spotify.com/authorize?" +
