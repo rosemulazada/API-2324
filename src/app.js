@@ -5,7 +5,8 @@ require("dotenv").config();
 
 // NPM modules
 const express = require("express");
-const ejs = require("ejs");
+const querystring = require("querystring");
+// const ejs = require("ejs");
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -35,8 +36,8 @@ app.get("", (req, res) => {
 
 app.listen(port, async () => {
     console.log(`Server running on port ${port}.`);
-    const token = await APIController._getToken();
-    const genres = await APIController._getGenres(token);
+    const token = await _getToken();
+    const genres = await _getGenres(token);
     console.log(genres);
 });
 
@@ -46,41 +47,67 @@ module.exports = app;
  *                  API CALL
  *=============================================**/
 // referenced this video by Avery Wicks on how to use Spotify's API https://www.youtube.com/watch?v=SbelQW2JaDQ
-const APIController = (() => {
-    const clientId = process.env.CLIENT_ID;
-    const clientSecret = process.env.CLIENT_SECRET;
 
-    // private methods
-    const _getToken = async () => {
-        const result = await fetch(`https://accounts.spotify.com/api/token`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                Authorization: `Basic ${btoa(clientId + ":" + clientSecret)}`,
-            },
-            body: "grant_type=client_credentials",
-        });
+const client_id = process.env.CLIENT_ID;
+const client_secret = process.env.CLIENT_SECRET;
+const redirect_uri =
+    process.env.NODE_ENV == "dev"
+        ? "http://localhost:8000/callback"
+        : "https://api-2324.vercel.app//callback";
 
-        const data = await result.json();
-        console.log(data);
-        return data.access_token;
-    };
+const generateRandomString = (length) => {
+    const possible =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const values = crypto.getRandomValues(new Uint8Array(length));
+    return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+};
 
-    const _getGenres = async (token) => {
-        const result = await fetch(
-            "https://api.spotify.com/v1/browse/categories?locale=sv_US",
-            {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-            }
-        );
+app.get("/login", function (req, res) {
+    var state = generateRandomString(16);
+    var scope = "";
 
-        const data = await result.json();
-        return data.categories.items;
-    };
+    res.redirect(
+        "https://accounts.spotify.com/authorize?" +
+            querystring.stringify({
+                response_type: "code",
+                client_id: client_id,
+                scope: scope,
+                redirect_uri: redirect_uri,
+                state: state,
+            })
+    );
+});
 
-    return {
-        _getToken,
-        _getGenres,
-    };
-})();
+// private methods
+const _getToken = async () => {
+    const result = await fetch(`https://accounts.spotify.com/api/token`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${btoa(client_id + ":" + client_secret)}`,
+        },
+        body: "grant_type=client_credentials",
+    });
+
+    const data = await result.json();
+    console.log(data);
+    return data.access_token;
+};
+
+const _getGenres = async (token) => {
+    const result = await fetch(
+        "https://api.spotify.com/v1/browse/categories?locale=US",
+        {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+        }
+    );
+
+    const data = await result.json();
+    return data.categories.items;
+};
+
+return {
+    _getToken,
+    _getGenres,
+};

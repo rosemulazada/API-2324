@@ -1,1 +1,27 @@
-<%- include ('../partials/test.ejs')%>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Genres</title>
+        <link rel="stylesheet" href="/css/styles.css" />
+    </head>
+    <body>
+        <%- include ('../partials/test.ejs')%>
+
+        <%- include ('../partials/connect-btn.ejs') %>
+
+        <script>
+            // const fetchGenres = async () => {
+            //     try {
+            //         const response = await fetch('/genres');
+            //         const genres = await response.json();
+            //         console.log(genres);
+            //     } catch (error) {
+            //         console.error('Error fetching genres:', error);
+            //     }
+            // };
+            // window.onload = fetchGenres;
+        </script>
+    </body>
+</html>
