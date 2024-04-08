@@ -1,6 +1,5 @@
 // Core modules
 const path = require("path");
-const fs = require("fs");
 const crypto = require("crypto");
 require("dotenv").config();
 
@@ -26,6 +25,8 @@ app.set("views", viewsPath);
 
 // Setup static directory to serve
 app.use(express.static(publicDirectoryPath)).use(cookieParser());
+
+module.exports = app;
 /**========================================================================
  *                           CODE START
  *========================================================================**/
@@ -52,17 +53,15 @@ app.listen(port, async () => {
     console.log(`Server running on port ${port}.`);
 });
 
-module.exports = app;
-
 /**============================================
  *                 oAuth2
  *=============================================**/
 // Spotify docs reference in README & Wiki
 
+// .ENV
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const stateKey = "spotify_auth_state";
-
 const redirect_uri =
     process.env.NODE_ENV == "dev"
         ? "http://localhost:8000/callback"
@@ -71,6 +70,18 @@ const redirect_uri =
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
 };
+
+// Function to assess the endpoint
+async function fetchWebApi(endpoint, method, body) {
+    const response = await fetch(`https://api.spotify.com/${endpoint}`, {
+        headers: {
+            Authorization: `Bearer ${access_token}`,
+        },
+        method,
+        body: JSON.stringify(body),
+    });
+    return await response.json();
+}
 
 app.get("/login", function (req, res) {
     const state = generateRandomString(16);
@@ -103,6 +114,7 @@ app.get("/callback", function (req, res) {
         );
     } else {
         res.clearCookie(stateKey);
+
         const authOptions = {
             url: "https://accounts.spotify.com/api/token",
             data: querystring.stringify({
@@ -124,7 +136,7 @@ app.get("/callback", function (req, res) {
             .post(authOptions.url, authOptions.data, {
                 headers: authOptions.headers,
             })
-            .then(function (response) {
+            .then((response) => {
                 if (response.status === 200) {
                     access_token = response.data.access_token;
                     const refresh_token = response.data.refresh_token;
@@ -140,7 +152,7 @@ app.get("/callback", function (req, res) {
                         sameSite: "strict",
                     });
 
-                    res.redirect("/success");
+                    res.redirect("/test");
                 } else {
                     res.redirect(
                         "/#" +
@@ -191,4 +203,59 @@ app.get("/success", async function (req, res) {
                 "Error occurred while fetching data from Spotify API."
             );
         });
+});
+
+app.get("/test", async (req, res) => {
+    // RELEVANT FUNCTIONS
+    // Get top 10 tracks
+    async function getTopTracks() {
+        const response = await fetchWebApi(
+            "v1/me/top/tracks?time_range=long_term&limit=10",
+            "GET"
+        );
+        return response.items;
+    }
+
+    // Get track features by track ID
+    async function getTrackFeatures(track_ids) {
+        const response = await fetchWebApi(
+            `v1/audio-features/${track_ids}`,
+            "GET"
+        );
+        return response;
+    }
+
+    try {
+        // Get the individual IDs
+        const topTracks = await getTopTracks();
+        const track_ids = topTracks.map(({ id }) => id);
+
+        let trackFeatures = [];
+
+        // Call getTrackFeatures for each individual top track ID
+        for (const track_index in track_ids) {
+            const track_id = track_ids[track_index];
+            const trackFeature = await getTrackFeatures(track_id);
+
+            // Save all the track features in an array
+            trackFeatures.push({ track_id, trackFeature });
+            console.log(trackFeature);
+        }
+
+        const tracks = topTracks
+            .map(
+                ({ name, artists, id }) =>
+                    `${name} by ${artists
+                        .map((artist) => artist.name)
+                        .join(
+                            ". "
+                        )}<em style="margin-left: 10px; font-size: .75em; font-family:system-ui;">ID: ${id}</em>`
+            )
+            .join("<br>");
+
+        res.send(trackFeatures);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Could not fetch data");
+    }
 });
