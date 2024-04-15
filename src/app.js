@@ -152,7 +152,7 @@ app.get("/callback", function (req, res) {
                         sameSite: "strict",
                     });
 
-                    res.redirect("/test");
+                    res.redirect("/yourplaylist");
                 } else {
                     res.redirect(
                         "/#" +
@@ -205,55 +205,96 @@ app.get("/success", async function (req, res) {
         });
 });
 
-app.get("/test", async (req, res) => {
+app.get("/yourplaylist", async (req, res) => {
     // RELEVANT FUNCTIONS
     // Get top 10 tracks
+    const axios = require("axios");
+
     async function getTopTracks() {
-        const response = await fetchWebApi(
-            "v1/me/top/tracks?time_range=long_term&limit=10",
-            "GET"
-        );
-        return response.items;
+        try {
+            const response = await axios.get(
+                "https://api.spotify.com/v1/me/top/tracks",
+                {
+                    params: {
+                        time_range: "long_term",
+                        limit: 5,
+                    },
+                    headers: {
+                        Authorization: "Bearer " + access_token,
+                    },
+                }
+            );
+
+            return response.data.items;
+        } catch (error) {
+            console.error("Error fetching top tracks:", error);
+            throw error; // Rethrow the error to handle it further if needed
+        }
     }
 
+    // async function getTopTracks() {
+    //     const response = await fetchWebApi(
+    //         "v1/me/top/tracks?time_range=long_term&limit=10",
+    //         "GET"
+    //     );
+    //     return response.items;
+    // }
+
     // Get track features by track ID
-    async function getTrackFeatures(track_ids) {
+    async function getTrackFeatures(track_id) {
         const response = await fetchWebApi(
-            `v1/audio-features/${track_ids}`,
+            `v1/audio-features/${track_id}`,
+            "GET"
+        );
+        return response;
+    }
+
+    // Get recommended songs
+    async function getRecommendedTracks(track_id, track_index) {
+        const response = await fetchWebApi(
+            `v1/recommendations?limit=1&seed_tracks=${track_id}`,
             "GET"
         );
         return response;
     }
 
     try {
-        // Get the individual IDs
         const topTracks = await getTopTracks();
-        const track_ids = topTracks.map(({ id }) => id);
 
-        let trackFeatures = [];
+        // Call getTrackFeatures and getRecommendedTracks for each individual top track ID
+        const trackInfo = await Promise.all(
+            topTracks.map(async (topTrack) => {
+                const track_id = topTrack.id;
+                const topTrackArtists = topTrack.artists[0].name;
+                const topTrackName = topTrack.name;
 
-        // Call getTrackFeatures for each individual top track ID
-        for (const track_index in track_ids) {
-            const track_id = track_ids[track_index];
-            const trackFeature = await getTrackFeatures(track_id);
+                return Promise.all([
+                    // getTrackFeatures(track_id),
+                    getRecommendedTracks(track_id),
+                    // had 'trackFeature' also in this bracket
+                ]).then(([recommendedTrack]) => {
+                    const recommendedTrackArtists =
+                        recommendedTrack.tracks[0].album.artists[0].name;
+                    const recommendedTrackTitles =
+                        recommendedTrack.tracks[0].name;
 
-            // Save all the track features in an array
-            trackFeatures.push({ track_id, trackFeature });
-            console.log(trackFeature);
-        }
+                    return {
+                        topTrack: {
+                            topTrackArtists: topTrackArtists,
+                            topTrackName: topTrackName,
+                        },
+                        // trackFeature,
+                        recommendedTracks: {
+                            recommendedTrackArtists: recommendedTrackArtists,
+                            recommendedTrackTitles: recommendedTrackTitles,
+                        },
+                    };
+                });
+            })
+        );
 
-        const tracks = topTracks
-            .map(
-                ({ name, artists, id }) =>
-                    `${name} by ${artists
-                        .map((artist) => artist.name)
-                        .join(
-                            ". "
-                        )}<em style="margin-left: 10px; font-size: .75em; font-family:system-ui;">ID: ${id}</em>`
-            )
-            .join("<br>");
-
-        res.send(trackFeatures);
+        console.log(trackInfo);
+        res.render('test', { trackInfo: trackInfo });
     } catch (error) {
         console.error(error);
         res.status(500).send("Could not fetch data");
