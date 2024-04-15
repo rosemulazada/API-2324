@@ -216,8 +216,8 @@ app.get("/yourplaylist", async (req, res) => {
                 "https://api.spotify.com/v1/me/top/tracks",
                 {
                     params: {
-                        time_range: "long_term",
-                        limit: 5,
+                        time_range: "short_term",
+                        limit: 1,
                     },
                     headers: {
                         Authorization: "Bearer " + access_token,
@@ -240,19 +240,10 @@ app.get("/yourplaylist", async (req, res) => {
     //     return response.items;
     // }
 
-    // Get track features by track ID
-    async function getTrackFeatures(track_id) {
-        const response = await fetchWebApi(
-            `v1/audio-features/${track_id}`,
-            "GET"
-        );
-        return response;
-    }
-
     // Get recommended songs
-    async function getRecommendedTracks(track_id, track_index) {
+    async function getRecommendedTracks(track_id) {
         const response = await fetchWebApi(
-            `v1/recommendations?limit=1&seed_tracks=${track_id}`,
+            `v1/recommendations?limit=5&seed_tracks=${track_id}`,
             "GET"
         );
         return response;
@@ -261,40 +252,49 @@ app.get("/yourplaylist", async (req, res) => {
     try {
         const topTracks = await getTopTracks();
 
-        // Call getTrackFeatures and getRecommendedTracks for each individual top track ID
+        console.log(topTracks[0].album.images);
+        // Call getRecommendedTracks for each individual top track ID
         const trackInfo = await Promise.all(
             topTracks.map(async (topTrack) => {
                 const track_id = topTrack.id;
                 const topTrackArtists = topTrack.artists[0].name;
                 const topTrackName = topTrack.name;
+                const topTrackImg = topTrack.album.images[0].url;
 
-                return Promise.all([
-                    // getTrackFeatures(track_id),
-                    getRecommendedTracks(track_id),
-                    // had 'trackFeature' also in this bracket
-                ]).then(([recommendedTrack]) => {
-                    const recommendedTrackArtists =
-                        recommendedTrack.tracks[0].album.artists[0].name;
-                    const recommendedTrackTitles =
-                        recommendedTrack.tracks[0].name;
+                return Promise.all([getRecommendedTracks(track_id)]).then(
+                    ([recommendedTrack]) => {
+                        const recommendedTrackArtists =
+                            recommendedTrack.tracks.map((track) => {
+                                return track.album.artists.map(
+                                    (artist) => artist.name
+                                );
+                            });
+                        const recommendedTrackTitles =
+                            recommendedTrack.tracks.map((track) => { return track.name });
+                        
+                        const recommendedTrackImgs = recommendedTrack.tracks.map(track => { return track.album.images[0].url});
 
-                    return {
-                        topTrack: {
-                            topTrackArtists: topTrackArtists,
-                            topTrackName: topTrackName,
-                        },
-                        // trackFeature,
-                        recommendedTracks: {
-                            recommendedTrackArtists: recommendedTrackArtists,
-                            recommendedTrackTitles: recommendedTrackTitles,
-                        },
-                    };
-                });
+                        return {
+                            topTrack: {
+                                topTrackArtists: topTrackArtists,
+                                topTrackName: topTrackName,
+                                topTrackImg: topTrackImg,
+                            },
+                            recommendedTracks: {
+                                recommendedTrackArtists:
+                                    recommendedTrackArtists,
+                                recommendedTrackTitles: recommendedTrackTitles,
+                                recommendedTrackImgs: recommendedTrackImgs,
+                            },
+                        };
+                    }
+                );
             })
         );
 
         console.log(trackInfo);
-        res.render('test', { trackInfo: trackInfo });
+        res.json(trackInfo);
+        // res.json("test", { trackInfo: trackInfo });
     } catch (error) {
         console.error(error);
         res.status(500).send("Could not fetch data");

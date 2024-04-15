@@ -158,7 +158,7 @@ section.call-to-action {
 }
 
 .circle {
-    --circle-size: 90px;
+    --circle-size: 50px;
     position: fixed;
     height: var(--circle-size);
     width: var(--circle-size);

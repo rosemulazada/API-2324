@@ -76,23 +76,3 @@ tick();
 
 
 // GSAP
-
-const introHeading = document.querySelector('.intro-heading');
-
-if (introHeading) {
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.to(".intro-heading", {
-            scrollTrigger: {
-                trigger: ".intro-heading",
-                start: "top 10%",
-                end: "bottom",
-                markers: true,
-                scrub: true,
-            },
-            y: 500,
-            scale: 4,
-            rotate: 300,
-        });
-    });
-}
