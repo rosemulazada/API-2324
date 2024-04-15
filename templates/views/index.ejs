@@ -4,13 +4,43 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Home</title>
+        <link rel="favicon" href="/img/temp-icon.png" />
         <link rel="stylesheet" href="/css/styles.css" />
     </head>
     <body>
-        <header><%- include ('../partials/header.ejs') %></header>
+        <div class="circle"></div>
+        <section class="wrapper">
+            <header><%- include ('../partials/header-desktop.ejs') %></header>
+            <main>
+                <h1>Your tastes, your say.</h1>
+                <p>
+                    Generate a playlist tailored specifically to your most
+                    listened tracks. Marching to the beat of <em>your</em> drum.
+                </p>
 
-        <h1>Home</h1>
-        <p>Discover new music, fine-tuned to your tastes.</p>
-        <%- include ('../partials/connect-btn.ejs')%>
+                <section class="call-to-action">
+                    <%- include ('../partials/connect-btn.ejs')%>
+                    <small
+                        >*Authorization required to access your Spotify top
+                        tracks.
+                    </small>
+                    <small
+                        >Data is solely used by <strong>Harmonize</strong> and
+                        not shared.</small
+                    >
+                </section>
+
+                <!-- <small
+            >*This app requires you to authorize <strong>Harmonize</strong> on
+            Spotify so it can look at your most listened tracks. This data is
+            not distributed or used anywhere else. By using this app, you
+            acknowledge that <strong>Harmonize</strong> will only access your
+            Spotify data for the purpose of providing its services and will not
+            share or misuse your information in any way.</small
+        > -->
+            </main>
+        </section>
+        <%- include ('../partials/footer.ejs')%>
+        <script src="/js/index.js"></script>
     </body>
 </html>
