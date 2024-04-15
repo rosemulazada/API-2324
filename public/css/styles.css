@@ -10,7 +10,19 @@
         sans-serif;
 }
 
+/* FONT IMPORTS */
+@font-face {
+    font-family: "Gilroy-ExtraBold";
+    src: url("../fonts/Gilroy-ExtraBold.otf") format("opentype");
+}
+
+@font-face {
+    font-family: "Gilroy-Light";
+    src: url("../fonts/Gilroy-Light.otf") format("opentype");
+}
+
 /* general styling */
+/* TODO: Scale items for mobile before doing anything else. */
 
 *,
 *::before,
@@ -19,12 +31,32 @@
     padding: 0;
     box-sizing: border-box;
 }
+html {
+    min-height: 100%;
+}
 
 body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
     font-family: var(--font-family);
-    padding: 3em;
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    main {
+        text-align: center;
+        /* TODO: Maybe find another way to do this. */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
 }
 
 p {
@@ -35,6 +67,30 @@ p {
  *                CODE START
  *============================================*/
 
+/* TYPOGRAPHY */
+small {
+    font-weight: 400;
+}
+
+.wrapper {
+    padding: 3em;
+    border-bottom: 1px solid black;
+    flex-grow: 1;
+}
+
+footer {
+    border: 1px solid black;
+    padding: 2em;
+    text-align: center;
+    small {
+        display: block;
+    }
+}
+
+strong {
+    text-transform: lowercase;
+}
+
 #connect-btn {
     padding: 0.5em 2em;
     text-decoration: none;
@@ -44,6 +100,72 @@ p {
     border-radius: 9999px;
 
     :hover {
-        background-color: var(--spotify-btn-highlight);
+        /* background-color:; */
     }
+}
+
+header {
+    nav {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        ul.logo {
+            display: flex;
+            flex-direction: row;
+
+            li.title {
+                font-family: "Gilroy-ExtraBold", var(--font-family);
+                font-weight: 700;
+                font-size: 1.3em;
+            }
+
+            .icon {
+                width: 32px;
+                height: 32px;
+            }
+        }
+
+        li {
+            text-transform: lowercase;
+            list-style: none;
+        }
+    }
+}
+
+h1 {
+    font-family: "Gilroy-ExtraBold", var(--font-family);
+    font-size: 4em;
+    /* width: 6em; */
+}
+
+body {
+}
+
+.wrapper {
+    flex-grow: 1;
+}
+
+section.call-to-action {
+    small:first-of-type {
+        margin-top: 1em;
+    }
+
+    small {
+        display: block;
+    }
+}
+
+.circle {
+    --circle-size: 90px;
+    position: fixed;
+    height: var(--circle-size);
+    width: var(--circle-size);
+    border: 1px solid rgba(0, 0, 0, 0.457);
+    border-radius: 100%;
+    background: none;
+    top: calc(var(--circle-size) / 2 * -1);
+    left: calc(var(--circle-size) / 2 * -1);
+    pointer-events: none;
 }
