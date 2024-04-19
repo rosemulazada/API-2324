@@ -39,6 +39,7 @@ app.get("", (req, res) => {
     res.render("index", {
         href: `/login`,
         btn_text: `Get started`,
+        mainStyle: "res",
     });
 });
 
@@ -216,7 +217,7 @@ app.get("/yourplaylist", async (req, res) => {
                 "https://api.spotify.com/v1/me/top/tracks",
                 {
                     params: {
-                        time_range: "short_term",
+                        time_range: "long_term",
                         limit: 1,
                     },
                     headers: {
@@ -243,7 +244,7 @@ app.get("/yourplaylist", async (req, res) => {
     // Get recommended songs
     async function getRecommendedTracks(track_id) {
         const response = await fetchWebApi(
-            `v1/recommendations?limit=5&seed_tracks=${track_id}`,
+            `v1/recommendations?limit=9&seed_tracks=${track_id}`,
             "GET"
         );
         return response;
@@ -252,7 +253,6 @@ app.get("/yourplaylist", async (req, res) => {
     try {
         const topTracks = await getTopTracks();
 
-        console.log(topTracks[0].album.images);
         // Call getRecommendedTracks for each individual top track ID
         const trackInfo = await Promise.all(
             topTracks.map(async (topTrack) => {
@@ -270,9 +270,14 @@ app.get("/yourplaylist", async (req, res) => {
                                 );
                             });
                         const recommendedTrackTitles =
-                            recommendedTrack.tracks.map((track) => { return track.name });
-                        
-                        const recommendedTrackImgs = recommendedTrack.tracks.map(track => { return track.album.images[0].url});
+                            recommendedTrack.tracks.map((track) => {
+                                return track.name;
+                            });
+
+                        const recommendedTrackImgs =
+                            recommendedTrack.tracks.map((track) => {
+                                return track.album.images[0].url;
+                            });
 
                         return {
                             topTrack: {
@@ -292,9 +297,17 @@ app.get("/yourplaylist", async (req, res) => {
             })
         );
 
-        console.log(trackInfo);
-        res.json(trackInfo);
-        // res.json("test", { trackInfo: trackInfo });
+        // console.log(trackInfo);
+        // res.json(trackInfo);
+        res.render("test", {
+            topTrackImg: trackInfo[0].topTrack.topTrackImg,
+            topTrackName: trackInfo[0].topTrack.topTrackName,
+            topTrackArtists: trackInfo[0].topTrack.topTrackArtists,
+            recommendedTrackImgs: trackInfo[0].recommendedTracks.recommendedTrackImgs,
+
+            mainStyle: "res",
+        });
+        // res.json(topTracks);
     } catch (error) {
         console.error(error);
         res.status(500).send("Could not fetch data");

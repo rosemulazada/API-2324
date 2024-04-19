@@ -6,24 +6,99 @@
         <title>Home</title>
         <link rel="favicon" href="/img/temp-icon.png" />
         <link rel="stylesheet" href="/css/styles.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+            integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
     </head>
+
     <body>
+        <progress max="100" value="0"></progress>
         <div class="circle"></div>
-        <section class="wrapper">
-            <header style="opacity: .1; transition: ease 3s;"><%- include ('../partials/header-desktop.ejs') %></header>
-            <main>
-                <h1 class="intro-heading">So.. sick of your old music?</h1>
-                <!-- <h1>Top Track Artists:</h1> -->
-                <!-- <ul> -->
-                <!-- <% trackInfo.forEach(track => { %> -->
-                <!-- <li><%= track.topTrack.topTrackArtists %></li> -->
-                <!-- <% }); %> -->
-                <!-- </ul>  -->
-            </main>
-        </section>
+        <header><%- include ('../partials/header-desktop.ejs') %></header>
+        <main class="wrapper">
+            <section
+                style="
+                    display: flex;
+                    flex: 1;
+                    min-height: 80vh;
+                    align-items: center;
+                "
+                class="wrapper__container"
+            >
+                <img
+                    class="topTrackImg"
+                    src="<%-topTrackImg%>"
+                    alt="Album cover for your favorite track, <%- topTrackName %>"
+                />
+                <section class="container">
+                    <section id="toptrack__container">
+                        <h3 id="number">#1</h3>
+                        <section id="toptrack__data">
+                            <h2 id="toptrack__name"><%- topTrackName %></h2>
+                            <h2 id="toptrack__artists">
+                                <%- topTrackArtists %>
+                            </h2>
+                            <p>
+                                Your most listened track of
+                                <strong> all time.</strong>
+                            </p>
+                        </section>
+                    </section>
+                    <h1>So.. you really like this song, huh?</h1>
+                    <i
+                        id="arrow"
+                        style="
+                            /* font-size: 4em;
+                transform: rotate(90deg); */
+                            /* position: absolute;
+                bottom: 5vh;
+                left: 50%; */
+                        "
+                        class="fa-solid fa-arrow-right"
+                    ></i>
+                </section>
+            </section>
+            <section></section>
+            <section
+                style="height: max-content"
+                class="wrapper__container gallery"
+            >
+                <h1 id="gallery__text">
+                    We've picked out some similar tracks for you.
+                </h1>
+                <section class="section test"></section>
+                <section class="section moving-imgs">
+                    <% recommendedTrackImgs.forEach((imgUrl, index) => { %>
+                    <img class="img" src="<%- imgUrl %>" />
+                    <% }); %>
+                </section>
+                <section></section>
+            </section>
+            <section class="wrapper__container">
+                <section
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: left;
+                    "
+                >
+                    <h1>Here's the list.</h1>
+                    <p style="color: #c1c7d4">
+                        don't worry, we'll put them into a playlist for you
+                        later.
+                    </p>
+                </section>
+            </section>
+        </main>
+
         <!-- <%- include ('../partials/footer.ejs')%> -->
         <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+        <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
         <script src="/js/index.js"></script>
     </body>
 </html>

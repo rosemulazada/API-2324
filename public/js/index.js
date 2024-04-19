@@ -74,5 +74,65 @@ const tick = () => {
 // Start the animation loop
 tick();
 
+// Ensure #1 is as big as other words
+document.addEventListener("DOMContentLoaded", function () {
+    // Get the height of the right side container
+    var rightContainerHeight =
+        document.getElementById("toptrack__data").clientHeight;
+
+    // Set the font size of the #1 element to match the height of the right side container
+    document.getElementById("number").style.fontSize =
+        rightContainerHeight + 5 + "px";
+});
 
 // GSAP
+
+const topTracksImg = document.querySelector(".topTrackImg");
+
+if (topTracksImg) {
+    gsap.from(topTracksImg, {
+        x: -100,
+        scale: 3,
+        duration: 0.5,
+    });
+}
+
+// progress bar
+gsap.registerPlugin(ScrollTrigger);
+gsap.to("progress", {
+    value: 100,
+    ease: "none",
+    scrollTrigger: {
+        scrub: 0.3,
+    },
+});
+
+const arrow = document.querySelector("#arrow");
+console.log(arrow);
+
+// album reveal
+
+const lenis = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+});
+
+function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+}
+
+requestAnimationFrame(raf);
+
+const tl = gsap
+    .timeline({
+        scrollTrigger: {
+            trigger: ".img",
+            scrub: true,
+        },
+    })
+    .to(".img", {
+        stagger: 0.2,
+        y: -400,
+        scrub: true,
+    });
