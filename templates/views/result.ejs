@@ -49,24 +49,11 @@
                         </section>
                     </section>
                     <h1>So.. you really like this song, huh?</h1>
-                    <i
-                        id="arrow"
-                        style="
-                            /* font-size: 4em;
-                transform: rotate(90deg); */
-                            /* position: absolute;
-                bottom: 5vh;
-                left: 50%; */
-                        "
-                        class="fa-solid fa-arrow-right"
-                    ></i>
+                    <i id="arrow" class="fa-solid fa-arrow-right"></i>
                 </section>
             </section>
             <section></section>
-            <section
-                style="height: max-content"
-                class="wrapper__container gallery"
-            >
+            <section class="wrapper__container gallery">
                 <h1 id="gallery__text">
                     We've picked out some similar tracks for you.
                 </h1>
@@ -79,19 +66,15 @@
                 <section></section>
             </section>
             <section class="wrapper__container">
-                <section
-                    style="
-                        display: flex;
-                        flex-direction: column;
-                        justify-content: left;
-                    "
-                >
+                <section id="recommendations__text">
                     <h1>Here's the list.</h1>
-                    <p style="color: #c1c7d4">
-                        don't worry, we'll put them into a playlist for you
+                    <p>
+                        Don't worry, we'll put them into a playlist for you
                         later.
                     </p>
                 </section>
+
+                <%-include ('../partials/recommendations_display.ejs')%>
             </section>
         </main>
 

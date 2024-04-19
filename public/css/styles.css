@@ -148,6 +148,13 @@ main.wrapper {
         justify-content: center;
         width: 90%;
 
+        &:nth-of-type(4) {
+            justify-content: left;
+            h1 {
+                font-size: 5em;
+            }
+        }
+
         img.topTrackImg {
             width: 35%;
             border-radius: 15%;
@@ -337,6 +344,62 @@ body {
                 z-index: 4;
                 top: 0;
                 left: 0;
+            }
+        }
+    }
+}
+
+/* recommended song list */
+main.wrapper {
+    .wrapper__container {
+        &:nth-of-type(4) {
+            align-items: normal;
+            width: 100%;
+            justify-content: left;
+            display: flex;
+            flex-direction: column;
+
+            #recommendations__text {
+                display: flex;
+                flex-direction: column;
+                justify-content: left;
+
+                h1 {
+                    font-size: 5.5em;
+                }
+
+                p {
+                    color: #c1c7d4;
+                }
+            }
+
+            .recommendations_display {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+
+                h2, h3 {
+                   width: 18vw;
+                }
+
+                .recommendations_display__left {
+                    justify-self: center;
+                    align-items: center;
+                }
+                .recommendations_display__center {
+                    justify-self: center;
+                }
+
+                .recommendations_display__right {
+                    justify-self: center;
+                }
+                .recommendation {
+                    width: 100%;
+                    padding-bottom: 3em;
+                    .recommendation__img {
+                        width: 18vw;
+                        height: auto;
+                    }
+                }
             }
         }
     }

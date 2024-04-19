@@ -110,8 +110,7 @@ gsap.to("progress", {
 const arrow = document.querySelector("#arrow");
 console.log(arrow);
 
-// album reveal
-
+// gallery
 const lenis = new Lenis({
     duration: 1.2,
     easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -136,3 +135,28 @@ const tl = gsap
         y: -400,
         scrub: true,
     });
+
+// Select all recommendation elements
+const recommendations__display = document.querySelectorAll(
+    ".recommendations__display"
+);
+
+const recommendations = document.querySelectorAll(".recommendation");
+
+recommendations.forEach((recommendation, index) => {
+    ScrollTrigger.create({
+        trigger: recommendation,
+        start: "top bottom",
+        end: "bottom top",
+        scrub: "true",
+        onEnter: () => {
+            gsap.from(recommendation, {
+                duration: 1,
+                opacity: 0,
+                y: -50 * index,
+                ease: "power2.out",
+                delay: 0.2,
+            });
+        },
+    });
+});

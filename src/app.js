@@ -209,7 +209,6 @@ app.get("/success", async function (req, res) {
 app.get("/yourplaylist", async (req, res) => {
     // RELEVANT FUNCTIONS
     // Get top 10 tracks
-    const axios = require("axios");
 
     async function getTopTracks() {
         try {
@@ -263,12 +262,14 @@ app.get("/yourplaylist", async (req, res) => {
 
                 return Promise.all([getRecommendedTracks(track_id)]).then(
                     ([recommendedTrack]) => {
-                        const recommendedTrackArtists =
-                            recommendedTrack.tracks.map((track) => {
-                                return track.album.artists.map(
-                                    (artist) => artist.name
-                                );
-                            });
+                      const recommendedTrackArtists =
+                          recommendedTrack.tracks.map((track) => {
+                              const firstArtistName =
+                                  track.album.artists[0].name;
+                              console.log(firstArtistName);
+                              return firstArtistName;
+                          });
+
                         const recommendedTrackTitles =
                             recommendedTrack.tracks.map((track) => {
                                 return track.name;
@@ -297,17 +298,19 @@ app.get("/yourplaylist", async (req, res) => {
             })
         );
 
-        // console.log(trackInfo);
-        // res.json(trackInfo);
-        res.render("test", {
+        res.render("result", {
             topTrackImg: trackInfo[0].topTrack.topTrackImg,
             topTrackName: trackInfo[0].topTrack.topTrackName,
             topTrackArtists: trackInfo[0].topTrack.topTrackArtists,
-            recommendedTrackImgs: trackInfo[0].recommendedTracks.recommendedTrackImgs,
+            recommendedTrackImgs:
+                trackInfo[0].recommendedTracks.recommendedTrackImgs,
+            recommendedArtistsNames:
+                trackInfo[0].recommendedTracks.recommendedTrackArtists,
+            recommendedTrackTitles:
+                trackInfo[0].recommendedTracks.recommendedTrackTitles,
 
             mainStyle: "res",
         });
-        // res.json(topTracks);
     } catch (error) {
         console.error(error);
         res.status(500).send("Could not fetch data");

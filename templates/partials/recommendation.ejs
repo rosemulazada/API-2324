@@ -1,0 +1,43 @@
+<% if (position === 'left') { %>
+<% for (let i = 0; i < 3; i++) { %>
+    <div class="recommendation">
+        <!-- IMAGE -->
+        <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
+
+        <!-- TRACK NAME -->
+        <h2><%- recommendedTrackTitles[i] %></h2>
+
+        <!-- ARTIST NAME -->
+        <h3><%- recommendedArtistsNames[i] %></h3>
+    </div>
+<% } %>
+
+<% } else if (position === 'center') { %>
+<% for (let i = 3; i < 6; i++) { %>
+    <div class="recommendation">
+        <!-- IMAGE -->
+        <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
+
+        <!-- TRACK NAME -->
+        <h2><%- recommendedTrackTitles[i] %></h2>
+
+        <!-- ARTIST NAME -->
+        <h3><%- recommendedArtistsNames[i] %></h3>
+    </div>
+<% } %>
+
+
+<% } else if (position === 'right') { %>
+<% for (let i = 6; i < 9; i++) { %>
+    <div class="recommendation">
+        <!-- IMAGE -->
+        <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
+
+        <!-- TRACK NAME -->
+        <h2><%- recommendedTrackTitles[i] %></h2>
+
+        <!-- ARTIST NAME -->
+        <h3><%- recommendedArtistsNames[i] %></h3>
+    </div>
+<% } %>
+<% } %>
