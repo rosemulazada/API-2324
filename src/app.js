@@ -63,7 +63,10 @@ app.listen(port, async () => {
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const stateKey = "spotify_auth_state";
-const redirect_uri = "http://localhost:8000/callback";
+const redirect_uri =
+    process.env.NODE_ENV == "dev"
+        ? "http://localhost:8000/callback"
+        : "https://api-2324.vercel.app/callback";
 
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
@@ -254,8 +257,9 @@ app.get("/yourplaylist", async (req, res) => {
             `v1/users/${user_id}/playlists`,
             "POST",
             {
-                name: "Success",
-                description: "My own playlist :D",
+                name: "My harmonize playlist",
+                description:
+                    "Playlist with my favorite songs and recommendations from {link tba}",
                 public: false,
             }
         );
@@ -310,7 +314,7 @@ app.get("/yourplaylist", async (req, res) => {
                     );
 
                     const createdPlaylist = await createPlaylist(urisParam);
-                    console.log(createdPlaylist.external_urls);
+                    console.log(createdPlaylist.external_urls.spotify);
 
                     return {
                         topTrack: {
