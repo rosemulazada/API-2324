@@ -66,7 +66,7 @@ const stateKey = "spotify_auth_state";
 const redirect_uri =
     process.env.NODE_ENV == "dev"
         ? "http://localhost:8000/callback"
-        : "https://api-2324.vercel.app/callback";
+        : "https://api-2324-wi9v.onrender.com//callback";
 
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
