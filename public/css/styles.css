@@ -181,14 +181,6 @@ main.wrapper {
                     font-size: calc(1em + 0.5vw);
                     color: white;
                 }
-
-                p {
-                    color: #c1c7d4;
-
-                    strong {
-                        color: white;
-                    }
-                }
             }
 
             h1 {
@@ -196,6 +188,14 @@ main.wrapper {
                 color: rgb(240, 231, 231);
             }
         }
+    }
+}
+
+p {
+    color: #c1c7d4;
+
+    strong {
+        color: white;
     }
 }
 
@@ -377,8 +377,9 @@ main.wrapper {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
 
-                h2, h3 {
-                   width: 18vw;
+                h2,
+                h3 {
+                    width: 18vw;
                 }
 
                 .recommendations_display__left {

@@ -160,3 +160,4 @@ recommendations.forEach((recommendation, index) => {
         },
     });
 });
+

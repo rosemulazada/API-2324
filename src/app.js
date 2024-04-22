@@ -63,10 +63,7 @@ app.listen(port, async () => {
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const stateKey = "spotify_auth_state";
-const redirect_uri =
-    process.env.NODE_ENV == "dev"
-        ? "http://localhost:8000/callback"
-        : "https://api-2324.vercel.app/callback";
+const redirect_uri = "http://localhost:8000/callback";
 
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
@@ -86,7 +83,10 @@ async function fetchWebApi(endpoint, method, body) {
 
 app.get("/login", function (req, res) {
     const state = generateRandomString(16);
-    const scope = "user-read-email user-top-read";
+    const scope =
+        "user-read-email user-top-read playlist-modify-public playlist-modify-private";
+
+    // console.log("login");
     res.cookie(stateKey, state);
 
     res.redirect(
@@ -102,6 +102,7 @@ app.get("/login", function (req, res) {
 });
 
 app.get("/callback", function (req, res) {
+    // console.log("callback");
     const code = req.query.code || null;
     const state = req.query.state || null;
     const storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -175,41 +176,11 @@ app.get("/callback", function (req, res) {
     }
 });
 
-app.get("/success", async function (req, res) {
-    if (!access_token) {
-        return res.status(401).send("Access token not found");
-    }
-
-    const options = {
-        url: "https://api.spotify.com/v1/me",
-        headers: {
-            Authorization: "Bearer " + access_token,
-        },
-    };
-
-    axios
-        .get(options.url, {
-            headers: options.headers,
-        })
-        .then((response) => {
-            res.send(
-                `<img style="border-radius:9999px;" src="${response.data.images[1].url}"/>
-                <br>
-                <a href="${response.data.external_urls.spotify}">${response.data.display_name}</a>`
-            );
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).send(
-                "Error occurred while fetching data from Spotify API."
-            );
-        });
-});
+app.get("/success", async function (req, res) {});
 
 app.get("/yourplaylist", async (req, res) => {
     // RELEVANT FUNCTIONS
     // Get top 10 tracks
-
     async function getTopTracks() {
         try {
             const response = await axios.get(
@@ -240,6 +211,33 @@ app.get("/yourplaylist", async (req, res) => {
     //     return response.items;
     // }
 
+    // Fetch user data so I can get user ID
+    if (!access_token) {
+        return res.status(401).send("Access token not found");
+    }
+
+    const options = {
+        url: "https://api.spotify.com/v1/me",
+        headers: {
+            Authorization: "Bearer " + access_token,
+        },
+    };
+
+    axios
+        .get(options.url, {
+            headers: options.headers,
+        })
+        .then((response) => {
+            // console.log(response.data);
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).send(
+                "Error occurred while fetching data from Spotify API."
+            );
+        });
+
+    let tracksUri;
     // Get recommended songs
     async function getRecommendedTracks(track_id) {
         const response = await fetchWebApi(
@@ -249,52 +247,85 @@ app.get("/yourplaylist", async (req, res) => {
         return response;
     }
 
+    async function createPlaylist(urisParam) {
+        const { id: user_id } = await fetchWebApi("v1/me", "GET");
+
+        const playlist = await fetchWebApi(
+            `v1/users/${user_id}/playlists`,
+            "POST",
+            {
+                name: "Success",
+                description: "My own playlist :D",
+                public: false,
+            }
+        );
+
+        await fetchWebApi(
+            `v1/playlists/${playlist.id}/tracks?uris=${urisParam.join(",")}`,
+            "POST"
+        );
+
+        return playlist;
+    }
+
     try {
         const topTracks = await getTopTracks();
 
-        // Call getRecommendedTracks for each individual top track ID
         const trackInfo = await Promise.all(
             topTracks.map(async (topTrack) => {
                 const track_id = topTrack.id;
+                const topTrackUri = topTrack.uri;
                 const topTrackArtists = topTrack.artists[0].name;
                 const topTrackName = topTrack.name;
                 const topTrackImg = topTrack.album.images[0].url;
 
-                return Promise.all([getRecommendedTracks(track_id)]).then(
-                    ([recommendedTrack]) => {
-                      const recommendedTrackArtists =
-                          recommendedTrack.tracks.map((track) => {
-                              const firstArtistName =
-                                  track.album.artists[0].name;
-                              console.log(firstArtistName);
-                              return firstArtistName;
-                          });
-
-                        const recommendedTrackTitles =
-                            recommendedTrack.tracks.map((track) => {
-                                return track.name;
-                            });
-
-                        const recommendedTrackImgs =
-                            recommendedTrack.tracks.map((track) => {
-                                return track.album.images[0].url;
-                            });
-
-                        return {
-                            topTrack: {
-                                topTrackArtists: topTrackArtists,
-                                topTrackName: topTrackName,
-                                topTrackImg: topTrackImg,
-                            },
-                            recommendedTracks: {
-                                recommendedTrackArtists:
-                                    recommendedTrackArtists,
-                                recommendedTrackTitles: recommendedTrackTitles,
-                                recommendedTrackImgs: recommendedTrackImgs,
-                            },
-                        };
-                    }
+                const recommendedTrack = await getRecommendedTracks(track_id);
+                const tracksUri = recommendedTrack.tracks.map(
+                    (track) => track.uri
                 );
+
+                const urisParam = [topTrackUri, ...tracksUri];
+
+                return Promise.all([
+                    recommendedTrack,
+                    createPlaylist(urisParam),
+                ]).then(async ([recommendedTrack, playlist]) => {
+                    const recommendedTrackArtists = recommendedTrack.tracks.map(
+                        (track) => {
+                            const firstArtistName = track.album.artists[0].name;
+                            return firstArtistName;
+                        }
+                    );
+
+                    const recommendedTrackTitles = recommendedTrack.tracks.map(
+                        (track) => {
+                            return track.name;
+                        }
+                    );
+
+                    const recommendedTrackImgs = recommendedTrack.tracks.map(
+                        (track) => {
+                            return track.album.images[0].url;
+                        }
+                    );
+
+                    const createdPlaylist = await createPlaylist(urisParam);
+                    console.log(createdPlaylist.external_urls);
+
+                    return {
+                        topTrack: {
+                            topTrackArtists: topTrackArtists,
+                            topTrackName: topTrackName,
+                            topTrackImg: topTrackImg,
+                        },
+                        recommendedTracks: {
+                            recommendedTrackArtists: recommendedTrackArtists,
+                            recommendedTrackTitles: recommendedTrackTitles,
+                            recommendedTrackImgs: recommendedTrackImgs,
+                            tracksUri: tracksUri,
+                        },
+                    };
+                });
             })
         );
 
