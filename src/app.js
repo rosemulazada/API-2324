@@ -63,10 +63,9 @@ app.listen(port, async () => {
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const stateKey = "spotify_auth_state";
-const redirect_uri =
-    process.env.NODE_ENV == "dev"
-        ? "http://localhost:8000/callback"
-        : "https://api-2324-wi9v.onrender.com//callback";
+const redirect_uri = "https://api-2324-wi9v.onrender.com/callback"
+    
+console.log(redirect_uri);
 
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
