@@ -16,9 +16,6 @@ const publicDirectoryPath = path.join(__dirname, "../public");
 const viewsPath = path.join(__dirname, "../templates/views");
 const partialsPath = path.join(__dirname, "../templates/partials");
 
-// Other variables
-let access_token;
-
 // Setup EJS engine and views location
 app.set("view engine", "ejs");
 app.set("views", viewsPath);
@@ -27,7 +24,7 @@ app.set("views", viewsPath);
 app.use(express.static(publicDirectoryPath)).use(cookieParser());
 
 module.exports = app;
-/**========================================================================
+/**=======================================================================
  *                           CODE START
  *========================================================================**/
 
@@ -63,9 +60,7 @@ app.listen(port, async () => {
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const stateKey = "spotify_auth_state";
-const redirect_uri = "https://api-2324-wi9v.onrender.com/callback"
-    
-console.log(redirect_uri);
+const redirect_uri = "http://localhost:8000/callback";
 
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
@@ -88,7 +83,6 @@ app.get("/login", function (req, res) {
     const scope =
         "user-read-email user-top-read playlist-modify-public playlist-modify-private";
 
-    // console.log("login");
     res.cookie(stateKey, state);
 
     res.redirect(
@@ -104,7 +98,6 @@ app.get("/login", function (req, res) {
 });
 
 app.get("/callback", function (req, res) {
-    // console.log("callback");
     const code = req.query.code || null;
     const state = req.query.state || null;
     const storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -183,6 +176,10 @@ app.get("/success", async function (req, res) {});
 app.get("/yourplaylist", async (req, res) => {
     // RELEVANT FUNCTIONS
     // Get top 10 tracks
+    if (!access_token) {
+        return res.status(401).send("Access token not found");
+    }
+
     async function getTopTracks() {
         try {
             const response = await axios.get(
@@ -214,9 +211,6 @@ app.get("/yourplaylist", async (req, res) => {
     // }
 
     // Fetch user data so I can get user ID
-    if (!access_token) {
-        return res.status(401).send("Access token not found");
-    }
 
     const options = {
         url: "https://api.spotify.com/v1/me",
@@ -230,7 +224,7 @@ app.get("/yourplaylist", async (req, res) => {
             headers: options.headers,
         })
         .then((response) => {
-            // console.log(response.data);
+            const userData = response;
         })
         .catch((error) => {
             console.error(error);
@@ -239,7 +233,6 @@ app.get("/yourplaylist", async (req, res) => {
             );
         });
 
-    let tracksUri;
     // Get recommended songs
     async function getRecommendedTracks(track_id) {
         const response = await fetchWebApi(
@@ -271,6 +264,23 @@ app.get("/yourplaylist", async (req, res) => {
         return playlist;
     }
 
+    async function getTrackInfo(recommendedTrackId) {
+        const trackMetadata = await fetchWebApi(
+            `v1/tracks/${recommendedTrackId}`,
+            "GET"
+        );
+
+        return trackMetadata;
+    }
+
+    async function getTrackFeatures(recommendedTrackId) {
+        const response = await fetchWebApi(
+            `v1/audio-features/${recommendedTrackId}`,
+            "GET"
+        );
+        return response;
+    }
+
     try {
         const topTracks = await getTopTracks();
 
@@ -287,61 +297,122 @@ app.get("/yourplaylist", async (req, res) => {
                     (track) => track.uri
                 );
 
+                const recommendedTrackIds = recommendedTrack.tracks.map(
+                    (track) => track.id
+                );
+
                 const urisParam = [topTrackUri, ...tracksUri];
 
                 return Promise.all([
                     recommendedTrack,
                     createPlaylist(urisParam),
-                ]).then(async ([recommendedTrack, playlist]) => {
-                    const recommendedTrackArtists = recommendedTrack.tracks.map(
-                        (track) => {
-                            const firstArtistName = track.album.artists[0].name;
-                            return firstArtistName;
-                        }
-                    );
+                    Promise.all(
+                        recommendedTrackIds.map((recommendedTrackId) =>
+                            getTrackInfo(recommendedTrackId)
+                        )
+                    ),
+                    Promise.all(
+                        await recommendedTrackIds.map((recommendedTrackId) =>
+                            getTrackFeatures(recommendedTrackId)
+                        )
+                    ),
+                ]).then(
+                    async ([
+                        recommendedTrack,
+                        playlist,
+                        recommendedTrackInfo,
+                        recommendedTrackFeatures,
+                    ]) => {
+                        const recommendedTrackArtists =
+                            recommendedTrack.tracks.map((track) => {
+                                const firstArtistName =
+                                    track.album.artists[0].name;
+                                return firstArtistName;
+                            });
 
-                    const recommendedTrackTitles = recommendedTrack.tracks.map(
-                        (track) => {
-                            return track.name;
-                        }
-                    );
+                        const recommendedTrackTitles =
+                            recommendedTrack.tracks.map((track) => {
+                                return track.name;
+                            });
 
-                    const recommendedTrackImgs = recommendedTrack.tracks.map(
-                        (track) => {
-                            return track.album.images[0].url;
-                        }
-                    );
+                        const recommendedTrackImgs =
+                            recommendedTrack.tracks.map((track) => {
+                                return track.album.images[0].url;
+                            });
 
-                    const createdPlaylist = await createPlaylist(urisParam);
-                    console.log(createdPlaylist.external_urls.spotify);
+                        const duration = recommendedTrackInfo.map((track) => {
+                            return track.duration_ms;
+                        });
+                        const popularity = recommendedTrackInfo.map((track) => {
+                            return track.popularity;
+                        });
+                        const tempo = recommendedTrackFeatures.map((track) => {
+                            return track.tempo;
+                        });
+                        const genre = recommendedTrackFeatures.map((track) => {
+                            return track.genres;
+                        });
 
-                    return {
-                        topTrack: {
-                            topTrackArtists: topTrackArtists,
-                            topTrackName: topTrackName,
-                            topTrackImg: topTrackImg,
-                        },
-                        recommendedTracks: {
-                            recommendedTrackArtists: recommendedTrackArtists,
-                            recommendedTrackTitles: recommendedTrackTitles,
-                            recommendedTrackImgs: recommendedTrackImgs,
-                            tracksUri: tracksUri,
-                        },
-                    };
-                });
+                        const playlistUrl = playlist.external_urls.spotify;
+                        const playlistId = await playlist.id;
+                        const playlistUri = await playlist.uri;
+
+                        console.log(playlistId);
+                        console.log(playlistUrl);
+
+                        // console.log("trackfeatures", recommendedTrackFeatures);
+
+                        return {
+                            topTrack: {
+                                topTrackArtists: topTrackArtists,
+                                topTrackName: topTrackName,
+                                topTrackImg: topTrackImg,
+                            },
+                            recommendedTracks: {
+                                recommendedTrackArtists:
+                                    recommendedTrackArtists,
+                                recommendedTrackTitles: recommendedTrackTitles,
+                                recommendedTrackImgs: recommendedTrackImgs,
+                                // recommendedTrackInfo: recommendedTrackInfo,
+                                recommendedTrackPopularity: popularity,
+                                recommendedTrackGenre: genre,
+
+                                recommendedTrackTempo: tempo,
+
+                                tracksUri: tracksUri,
+                            },
+                            finalPlaylist: {
+                                playlistUrl: playlistUrl,
+                                playlistId: playlistId,
+                                playlistUri: playlistUri,
+                            },
+                        };
+                    }
+                );
             })
         );
 
+        // res.json(trackInfo[0].recommendedTracks.recommendedTrackPopularity);
         res.render("result", {
             topTrackImg: trackInfo[0].topTrack.topTrackImg,
             topTrackName: trackInfo[0].topTrack.topTrackName,
             topTrackArtists: trackInfo[0].topTrack.topTrackArtists,
+
             recommendedTrackImgs:
                 trackInfo[0].recommendedTracks.recommendedTrackImgs,
             recommendedArtistsNames:
                 trackInfo[0].recommendedTracks.recommendedTrackArtists,
             recommendedTrackTitles:
                 trackInfo[0].recommendedTracks.recommendedTrackTitles,
+            recommendedTracksIds:
+                trackInfo[0].recommendedTracks.recommendedTrackIds,
+            recommendedTrackPopularity:
+                trackInfo[0].recommendedTracks.recommendedTrackPopularity,
+
+            playlistUrl: trackInfo[0].finalPlaylist.playlistUrl,
+            playlistId: trackInfo[0].finalPlaylist.playlistId,
+            playlistUri: trackInfo[0].finalPlaylist.playlistUri,
+            // recommendedTrackInfo: trackInfo[0].finalPlaylist.recommendedTrackInfo,
 
             mainStyle: "res",
         });

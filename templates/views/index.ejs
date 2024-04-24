@@ -8,9 +8,8 @@
         <link rel="stylesheet" href="/css/styles.css" />
     </head>
     <body>
-        <div class="circle"></div>
         <section class="wrapper">
-            <!-- <header><%- include ('../partials/header-desktop.ejs') %></header> -->
+            <header><%- include ('../partials/header-desktop.ejs') %></header>
             <main class="<%- mainStyle %>">
                 <h1>
                     Your tastes, <br />
@@ -19,32 +18,24 @@
                 <p>
                     Generate a playlist tailored specifically to your most
                     listened tracks. <br />
-                    Marching to the beat of <em>your</em> drum.
+                    Marching to the beat of <em><strong>your</strong></em> drum.
                 </p>
 
                 <section class="call-to-action">
                     <%- include ('../partials/connect-btn.ejs')%>
-                    <small
-                        >*Authorization required to access your Spotify top
-                        tracks.
-                    </small>
-                    <small
-                        >Data is solely used by <strong>Harmonize</strong> and
-                        not shared.</small
-                    >
+                    <p>
+                        <small
+                            >*Authorization required to access your Spotify top
+                            tracks.
+                        </small>
+                        <small
+                            >Data is solely used by
+                            <strong>Harmonize</strong> and not shared.</small
+                        >
+                    </p>
                 </section>
-
-                <!-- <small
-            >*This app requires you to authorize <strong>Harmonize</strong> on
-            Spotify so it can look at your most listened tracks. This data is
-            not distributed or used anywhere else. By using this app, you
-            acknowledge that <strong>Harmonize</strong> will only access your
-            Spotify data for the purpose of providing its services and will not
-            share or misuse your information in any way.</small
-        > -->
             </main>
         </section>
-        <%- include ('../partials/footer.ejs')%>
         <script src="/js/index.js"></script>
     </body>
 </html>

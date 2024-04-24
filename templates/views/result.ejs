@@ -17,7 +17,6 @@
 
     <body>
         <progress max="100" value="0"></progress>
-        <div class="circle"></div>
         <header><%- include ('../partials/header-desktop.ejs') %></header>
         <main class="wrapper">
             <section
@@ -78,19 +77,61 @@
                 <%-include ('../partials/recommendations_display.ejs')%>
             </section>
 
-            <div class="wrapper__container">
-                <h1>Here it is!</h1>
-                <p>
-                    Your perfect playlist,
-                    <strong> right here for you.</strong>
-                </p>
+            <div id="reveal_playlist__container" class="wrapper__container">
+                <div id="reveal_playlist__text">
+                    <h1>Here it is!</h1>
+                    <p>
+                        Your perfect playlist,
+                        <strong> right here for you.</strong>
+                    </p>
+                </div>
+
+                <div id="embed-iframe"></div>
             </div>
         </main>
 
-        <!-- <%- include ('../partials/footer.ejs')%> -->
         <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
         <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+        <script
+            src="https://open.spotify.com/embed/iframe-api/v1"
+            async
+        ></script>
+        <script>
+            // Embedded playlist
+            window.onSpotifyIframeApiReady = (IFrameAPI) => {
+                const element = document.getElementById("embed-iframe");
+                const options = {
+                    uri: "<%- playlistUri %>",
+                };
+                const callback = (EmbedController) => {};
+                IFrameAPI.createController(element, options, callback);
+                document.querySelector("iframe").setAttribute("width", "70%");
+            };
+
+            // Web Share API
+            if (navigator.share) {
+                const shareData = {
+                    text: "This playlist was suited made by Harmonize specifically for me! Listen to it here: <%- playlistUrl %>",
+                };
+
+                let shareBtn = document.createElement("button");
+                shareBtn.id = "button";
+                shareBtn.textContent = "Share your playlist";
+                let textContainer = document.getElementById(
+                    "reveal_playlist__text"
+                );
+                textContainer.appendChild(shareBtn);
+
+                shareBtn.addEventListener("click", async () => {
+                    try {
+                        await navigator.share(shareData);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                });
+            }
+        </script>
         <script src="/js/index.js"></script>
     </body>
 </html>
