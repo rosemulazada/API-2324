@@ -60,7 +60,7 @@ app.listen(port, async () => {
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const stateKey = "spotify_auth_state";
-const redirect_uri = "http://localhost:8000/callback";
+const redirect_uri = "https://api-2324-wi9v.onrender.com/callback";
 
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
@@ -198,20 +198,11 @@ app.get("/yourplaylist", async (req, res) => {
             return response.data.items;
         } catch (error) {
             console.error("Error fetching top tracks:", error);
-            throw error; // Rethrow the error to handle it further if needed
+            throw error;
         }
     }
 
-    // async function getTopTracks() {
-    //     const response = await fetchWebApi(
-    //         "v1/me/top/tracks?time_range=long_term&limit=10",
-    //         "GET"
-    //     );
-    //     return response.items;
-    // }
-
     // Fetch user data so I can get user ID
-
     const options = {
         url: "https://api.spotify.com/v1/me",
         headers: {
@@ -223,9 +214,7 @@ app.get("/yourplaylist", async (req, res) => {
         .get(options.url, {
             headers: options.headers,
         })
-        .then((response) => {
-            const userData = response;
-        })
+        .then((response) => {})
         .catch((error) => {
             console.error(error);
             res.status(500).send(
@@ -342,7 +331,7 @@ app.get("/yourplaylist", async (req, res) => {
 
                         const duration = recommendedTrackInfo.map((track) => {
                             const calc = track.duration_ms / 60000;
-                           console.log(calc)
+                            console.log(calc);
                         });
 
                         const popularity = recommendedTrackInfo.map((track) => {
