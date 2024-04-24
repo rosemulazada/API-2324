@@ -341,17 +341,19 @@ app.get("/yourplaylist", async (req, res) => {
                             });
 
                         const duration = recommendedTrackInfo.map((track) => {
-                            return track.duration_ms;
+                            const calc = track.duration_ms / 60000;
+                           console.log(calc)
                         });
+
                         const popularity = recommendedTrackInfo.map((track) => {
                             return track.popularity;
                         });
-                        const tempo = recommendedTrackFeatures.map((track) => {
-                            return track.tempo;
-                        });
-                        const genre = recommendedTrackFeatures.map((track) => {
-                            return track.genres;
-                        });
+                        const tempoData = recommendedTrackFeatures.map(
+                            (track) => {
+                                const tempo = Math.round(track.tempo);
+                                return tempo;
+                            }
+                        );
 
                         const playlistUrl = playlist.external_urls.spotify;
                         const playlistId = await playlist.id;
@@ -360,7 +362,10 @@ app.get("/yourplaylist", async (req, res) => {
                         console.log(playlistId);
                         console.log(playlistUrl);
 
-                        // console.log("trackfeatures", recommendedTrackFeatures);
+                        const recommendedTrackRelease =
+                            recommendedTrackInfo.map((track) => {
+                                return track.album.release_date;
+                            });
 
                         return {
                             topTrack: {
@@ -373,11 +378,16 @@ app.get("/yourplaylist", async (req, res) => {
                                     recommendedTrackArtists,
                                 recommendedTrackTitles: recommendedTrackTitles,
                                 recommendedTrackImgs: recommendedTrackImgs,
-                                // recommendedTrackInfo: recommendedTrackInfo,
-                                recommendedTrackPopularity: popularity,
-                                recommendedTrackGenre: genre,
+                                recommendedTrackInfo: recommendedTrackInfo,
+                                recommendedTrackFeatures:
+                                    recommendedTrackFeatures,
 
-                                recommendedTrackTempo: tempo,
+                                // METADATA DETAIL PAGE
+                                recommendedTrackPopularity: popularity,
+                                recommendedTrackRelease:
+                                    recommendedTrackRelease,
+                                recommendedTrackDuration: duration,
+                                recommendedTrackTempo: tempoData,
 
                                 tracksUri: tracksUri,
                             },
@@ -392,7 +402,6 @@ app.get("/yourplaylist", async (req, res) => {
             })
         );
 
-        // res.json(trackInfo[0].recommendedTracks.recommendedTrackPopularity);
         res.render("result", {
             topTrackImg: trackInfo[0].topTrack.topTrackImg,
             topTrackName: trackInfo[0].topTrack.topTrackName,
@@ -408,6 +417,12 @@ app.get("/yourplaylist", async (req, res) => {
                 trackInfo[0].recommendedTracks.recommendedTrackIds,
             recommendedTrackPopularity:
                 trackInfo[0].recommendedTracks.recommendedTrackPopularity,
+            recommendedTrackRelease:
+                trackInfo[0].recommendedTracks.recommendedTrackRelease,
+            recommendedTrackTempo:
+                trackInfo[0].recommendedTracks.recommendedTrackTempo,
+            recommendedTrackDuration:
+                trackInfo[0].recommendedTracks.recommendedTrackDuration,
 
             playlistUrl: trackInfo[0].finalPlaylist.playlistUrl,
             playlistId: trackInfo[0].finalPlaylist.playlistId,

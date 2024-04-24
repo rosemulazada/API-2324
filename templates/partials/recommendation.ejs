@@ -1,47 +1,87 @@
-<% if (position === 'left') { %>
-<% for (let i = 0; i < 3; i++) { %>
-    <div class="recommendation">
-        <!-- IMAGE -->
-        <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
+<% if (position === 'left') { %> <% for (let i = 0; i < 3; i++) { %>
+<div class="recommendation">
+    <!-- IMAGE -->
+    <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
 
-        <!-- TRACK NAME -->
-        <h2><%- recommendedTrackTitles[i] %></h2>
+    <section class="all_data">
+        <section class="main_data">
+            <!-- TRACK NAME -->
 
-        <!-- ARTIST NAME -->
-        <h3><%- recommendedArtistsNames[i] %></h3>
-        <h4><%- recommendedTrackPopularity[i] %></h3>
-    </div>
-<% } %>
+            <h2><%- recommendedTrackTitles[i] %></h2>
 
-<% } else if (position === 'center') { %>
-<% for (let i = 3; i < 6; i++) { %>
-    <div class="recommendation">
-        <!-- IMAGE -->
-        <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
+            <!-- ARTIST NAME -->
+            <h3><%- recommendedArtistsNames[i] %></h3>
+        </section>
 
-        <!-- TRACK NAME -->
-        <h2><%- recommendedTrackTitles[i] %></h2>
+        <!-- METADATA -->
+        <section class="metadata">
+            <h3><%- recommendedTrackTempo[i]%>BPM</h3>
+            <h3><%- recommendedTrackDuration[i]%></h3>
+            <h3><%- recommendedTrackRelease[i] %></h3>
+            <h3>
+                On a scale of 0-100 (low to high), this is the <%-
+                recommendedTrackPopularity[i] %>th most popular song by this
+                artist!
+            </h3>
+        </section>
+    </section>
+</div>
+<% } %> <% } else if (position === 'center') { %> <% for (let i = 3; i < 6; i++)
+{ %>
+<div class="recommendation">
+    <!-- IMAGE -->
+    <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
 
-        <!-- ARTIST NAME -->
-        <h3><%- recommendedArtistsNames[i] %></h3>
-        <h4><%- recommendedTrackPopularity[i] %></h3>
-    </div>
-<% } %>
+    <section class="all_data">
+        <section class="main_data">
+            <!-- TRACK NAME -->
 
+            <h2><%- recommendedTrackTitles[i] %></h2>
 
-<% } else if (position === 'right') { %>
-<% for (let i = 6; i < 9; i++) { %>
-    <div class="recommendation">
-        <!-- IMAGE -->
-        <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
+            <!-- ARTIST NAME -->
+            <h3><%- recommendedArtistsNames[i] %></h3>
+        </section>
 
-        <!-- TRACK NAME -->
-        <h2><%- recommendedTrackTitles[i] %></h2>
+        <!-- METADATA -->
+        <section class="metadata">
+            <h3><%- recommendedTrackTempo[i]%>BPM</h3>
+            <h3><%- recommendedTrackDuration[i]%></h3>
+            <h3><%- recommendedTrackRelease[i] %></h3>
+            <h3>
+                On a scale of 0-100 (low to high), this is the <%-
+                recommendedTrackPopularity[i] %>th most popular song by this
+                artist!
+            </h3>
+        </section>
+    </section>
+</div>
+<% } %> <% } else if (position === 'right') { %> <% for (let i = 6; i < 9; i++)
+{ %>
+<div class="recommendation">
+    <!-- IMAGE -->
+    <img class="recommendation__img" src="<%- recommendedTrackImgs[i] %>" />
 
-        <!-- ARTIST NAME -->
-        <h3><%- recommendedArtistsNames[i] %></h3>
-        <h4><%- recommendedTrackPopularity[i] %></h3>
+    <section class="all_data">
+        <section class="main_data">
+            <!-- TRACK NAME -->
 
-    </div>
-<% } %>
-<% } %>
+            <h2><%- recommendedTrackTitles[i] %></h2>
+
+            <!-- ARTIST NAME -->
+            <h3><%- recommendedArtistsNames[i] %></h3>
+        </section>
+
+        <!-- METADATA -->
+        <section class="metadata">
+            <h3><%- recommendedTrackTempo[i]%>BPM</h3>
+            <h3><%- recommendedTrackDuration[i]%></h3>
+            <h3><%- recommendedTrackRelease[i] %></h3>
+            <h3>
+                On a scale of 0-100 (low to high), this is the <%-
+                recommendedTrackPopularity[i] %>th most popular song by this
+                artist!
+            </h3>
+        </section>
+    </section>
+</div>
+<% } %> <% } %>

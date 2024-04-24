@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // GSAP
-
 const topTracksImg = document.querySelector(".topTrackImg");
 
 if (topTracksImg) {
@@ -29,9 +28,6 @@ gsap.to("progress", {
         scrub: 0.3,
     },
 });
-
-const arrow = document.querySelector("#arrow");
-console.log(arrow);
 
 // Gallery
 // Credit: https://codepen.io/roza-m/pen/JjVmpBm
@@ -60,19 +56,19 @@ const tl = gsap
         scrub: true,
     });
 
-// Select all recommendation elements
 const recommendations__display = document.querySelectorAll(
     ".recommendations__display"
 );
-
 const recommendations = document.querySelectorAll(".recommendation");
 
 recommendations.forEach((recommendation, index) => {
+    const tl = gsap.timeline({ delay: 1 });
+
     ScrollTrigger.create({
         trigger: recommendation,
         start: "top bottom",
         end: "bottom top",
-        scrub: "true",
+        scrub: true,
         onEnter: () => {
             gsap.from(recommendation, {
                 duration: 1,
@@ -82,6 +78,69 @@ recommendations.forEach((recommendation, index) => {
                 delay: 0.2,
             });
         },
+    });
+
+    tl.to(recommendation, {
+        duration: 0.4,
+        ease: "none",
+    }).to(
+        recommendation,
+        {
+            duration: 0.4,
+            rotation: 5,
+            yoyo: true,
+            repeat: 5,
+            ease: "none",
+            delay: 2,
+        },
+        "-=.25"
+    );
+});
+
+let activeRecommendationId = null;
+
+recommendations.forEach((recommendation) => {
+    const recommendationId = recommendation.id;
+
+    recommendation.addEventListener("click", (e) => {
+        const metadata = recommendation.querySelector(".metadata");
+
+        if (activeRecommendationId === recommendationId) {
+            metadata.style.display = "none";
+
+            recommendation.style.width = "";
+
+            recommendation.classList.remove("metadata-show");
+
+            gsap.to(recommendation, {
+                duration: 1,
+                scale: 1,
+                top: "",
+                left: "",
+                x: "",
+                y: "",
+            });
+
+            activeRecommendationId = null;
+        } else {
+            metadata.style.display = "inline-block";
+            recommendation.classList.add("metadata-show");
+            recommendation.style.width = "min-content";
+
+            // Calculate the vertical center position based on the current viewport and scroll position
+            const verticalCenter = window.innerHeight / 2 + window.scrollY;
+
+            gsap.to(recommendation, {
+                duration: 1,
+                scale: 1.5,
+                top: `${verticalCenter}px`,
+                left: "50%",
+                x: "-50%",
+                y: "-50%",
+            });
+
+            activeRecommendationId = recommendationId;
+        }
     });
 });
 
