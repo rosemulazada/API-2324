@@ -59,24 +59,12 @@ app.listen(port, async () => {
 // .ENV
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
-const stateKey = "spotify_auth_state";
 const redirect_uri = "https://rose-mulazada-api.onrender.com/callback";
+const stateKey = "spotify_auth_state";
 
 const generateRandomString = (length) => {
     return crypto.randomBytes(60).toString("hex").slice(0, length);
 };
-
-// Function to assess the endpoint
-async function fetchWebApi(endpoint, method, body) {
-    const response = await fetch(`https://api.spotify.com/${endpoint}`, {
-        headers: {
-            Authorization: `Bearer ${access_token}`,
-        },
-        method,
-        body: JSON.stringify(body),
-    });
-    return await response.json();
-}
 
 app.get("/login", function (req, res) {
     const state = generateRandomString(16);
@@ -98,9 +86,11 @@ app.get("/login", function (req, res) {
 });
 
 app.get("/callback", function (req, res) {
-    const code = req.query.code || null;
-    const state = req.query.state || null;
-    const storedState = req.cookies ? req.cookies[stateKey] : null;
+    // request refresh and access tokens after comparing states
+
+    let code = req.query.code || null;
+    let state = req.query.state || null;
+    let storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
         res.redirect(
@@ -110,46 +100,41 @@ app.get("/callback", function (req, res) {
                 })
         );
     } else {
-        res.clearCookie(stateKey);
+        res.clearCookie(stateKey); // eat (clear) cookie
 
         const authOptions = {
-            url: "https://accounts.spotify.com/api/token",
-            data: querystring.stringify({
-                code: code,
-                redirect_uri: redirect_uri,
-                grant_type: "authorization_code",
-            }),
+            method: "POST",
             headers: {
-                "content-type": "application/x-www-form-urlencoded",
+                "Content-Type": "application/x-www-form-urlencoded",
                 Authorization:
                     "Basic " +
                     Buffer.from(client_id + ":" + client_secret).toString(
                         "base64"
                     ),
             },
+            body: `code=${code}&redirect_uri=${redirect_uri}&grant_type=authorization_code`,
+            json: true,
         };
 
-        axios
-            .post(authOptions.url, authOptions.data, {
-                headers: authOptions.headers,
-            })
-            .then((response) => {
+        fetch("https://accounts.spotify.com/api/token", authOptions)
+            .then(async (response) => {
                 if (response.status === 200) {
-                    access_token = response.data.access_token;
-                    const refresh_token = response.data.refresh_token;
+                    const responseContent = await response.json();
+                    if (responseContent) {
+                        let access_token = responseContent.access_token;
+                        let refresh_token = responseContent.refresh_token;
 
-                    res.cookie("access_token", access_token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === "production",
-                        sameSite: "strict",
-                    });
-                    res.cookie("refresh_token", refresh_token, {
-                        httpOnly: true,
-                        secure: process.env.NODE_ENV === "production",
-                        sameSite: "strict",
-                    });
+                        res.cookie("access_token", access_token, {
+                            httpOnly: true,
+                            secure: process.env.NODE_ENV === "production",
+                        });
+                        res.cookie("refresh_token", refresh_token, {
+                            httpOnly: true,
+                            secure: process.env.NODE_ENV === "production",
+                        });
 
-                    res.redirect("/yourplaylist");
+                        res.redirect("/yourplaylist");
+                    }
                 } else {
                     res.redirect(
                         "/#" +
@@ -161,45 +146,67 @@ app.get("/callback", function (req, res) {
             })
             .catch((error) => {
                 console.error(error);
-                res.redirect(
-                    "/#" +
-                        querystring.stringify({
-                            error: "invalid_token",
-                        })
-                );
             });
     }
 });
 
-app.get("/success", async function (req, res) {});
+app.get("/refresh_token", async function (req, res) {
+    const refresh_token = req.query.refresh_token;
+    const authOptions = {
+        // url: "",
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization:
+                "Basic " +
+                Buffer.from(client_id + ":" + client_secret).toString("base64"),
+        },
+        body: `code=${code}&redirect_uri=${redirect_uri}&grant_type=authorization_code`,
+    };
+
+    fetch("https://accounts.spotify.com/api/token", authOptions).then(
+        (response) => {
+            if (response.status === 200) {
+                response
+                    .json()
+                    .then((data) => {
+                        const access_token = data.access_token;
+                        res.send({ access_token });
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        res.send(error);
+                    });
+            }
+        }
+    );
+});
 
 app.get("/yourplaylist", async (req, res) => {
     // RELEVANT FUNCTIONS
     // Get top 10 tracks
-    if (!access_token) {
-        return res.status(401).send("Access token not found");
+    console.log(req.cookies, "______");
+    const access_token = req.cookies.access_token;
+
+    // Function to assess the endpoint
+    async function fetchWebApi(endpoint, method, body) {
+        const response = await fetch(`https://api.spotify.com/${endpoint}`, {
+            headers: {
+                Authorization: `Bearer ${req.cookies.access_token}`,
+            },
+            method,
+            body: JSON.stringify(body),
+        });
+        const result = await response.json();
+        return result;
     }
 
     async function getTopTracks() {
-        try {
-            const response = await axios.get(
-                "https://api.spotify.com/v1/me/top/tracks",
-                {
-                    params: {
-                        time_range: "long_term",
-                        limit: 1,
-                    },
-                    headers: {
-                        Authorization: "Bearer " + access_token,
-                    },
-                }
-            );
-
-            return response.data.items;
-        } catch (error) {
-            console.error("Error fetching top tracks:", error);
-            throw error;
-        }
+        const response = await fetchWebApi(
+            "v1/me/top/tracks?time_range=long_term&limit=1",
+            "GET"
+        );
+        return response.items;
     }
 
     // Fetch user data so I can get user ID
@@ -296,13 +303,15 @@ app.get("/yourplaylist", async (req, res) => {
                     recommendedTrack,
                     createPlaylist(urisParam),
                     Promise.all(
-                        recommendedTrackIds.map((recommendedTrackId) =>
-                            getTrackInfo(recommendedTrackId)
+                        recommendedTrackIds.map(
+                            async (recommendedTrackId) =>
+                                await getTrackInfo(recommendedTrackId)
                         )
                     ),
                     Promise.all(
-                        await recommendedTrackIds.map((recommendedTrackId) =>
-                            getTrackFeatures(recommendedTrackId)
+                        recommendedTrackIds.map(
+                            async (recommendedTrackId) =>
+                                await getTrackFeatures(recommendedTrackId)
                         )
                     ),
                 ]).then(
@@ -331,7 +340,8 @@ app.get("/yourplaylist", async (req, res) => {
 
                         const duration = recommendedTrackInfo.map((track) => {
                             const calc = track.duration_ms / 60000;
-                            console.log(calc);
+
+                            return calc;
                         });
 
                         const popularity = recommendedTrackInfo.map((track) => {
@@ -347,9 +357,6 @@ app.get("/yourplaylist", async (req, res) => {
                         const playlistUrl = playlist.external_urls.spotify;
                         const playlistId = await playlist.id;
                         const playlistUri = await playlist.uri;
-
-                        console.log(playlistId);
-                        console.log(playlistUrl);
 
                         const recommendedTrackRelease =
                             recommendedTrackInfo.map((track) => {
