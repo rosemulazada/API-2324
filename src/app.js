@@ -195,7 +195,7 @@ app.get("/yourplaylist", async (req, res) => {
     async function fetchWebApi(endpoint, method, body) {
         const res = await fetch(`https://api.spotify.com/${endpoint}`, {
             headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${access_token}`,
             },
             method,
             body: JSON.stringify(body),
