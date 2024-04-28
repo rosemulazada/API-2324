@@ -210,24 +210,26 @@ app.get("/yourplaylist", async (req, res) => {
     }
 
     // Fetch user data so I can get user ID
-    const options = {
-        url: "https://api.spotify.com/v1/me",
-        headers: {
-            Authorization: "Bearer " + access_token,
-        },
-    };
+    // const options = {
+    //     url: "https://api.spotify.com/v1/me",
+    //     headers: {
+    //         Authorization: "Bearer " + access_token,
+    //     },
+    // };
 
-    axios
-        .get(options.url, {
-            headers: options.headers,
-        })
-        .then((response) => {})
-        .catch((error) => {
-            console.error(error);
-            res.status(500).send(
-                "Error occurred while fetching data from Spotify API."
-            );
-        });
+    // axios
+    //     .get(options.url, {
+    //         headers: options.headers,
+    //     })
+    //     .then((response) => {
+            
+    //     })
+    //     .catch((error) => {
+    //         console.error(error);
+    //         res.status(500).send(
+    //             "Error occurred while fetching data from Spotify API."
+    //         );
+    //     });
 
     // Get recommended songs
     async function getRecommendedTracks(track_id) {
