@@ -59,7 +59,10 @@ app.listen(port, async () => {
 // .ENV
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
-const redirect_uri = "https://rose-mulazada-api.onrender.com/callback";
+const redirect_uri =
+    process.env.NODE_ENV === "production"
+        ? "https://rose-mulazada-api.onrender.com/callback"
+        : "http://localhost:8000/callback";
 const stateKey = "spotify_auth_state";
 
 const generateRandomString = (length) => {
@@ -190,15 +193,14 @@ app.get("/yourplaylist", async (req, res) => {
 
     // Function to assess the endpoint
     async function fetchWebApi(endpoint, method, body) {
-        const response = await fetch(`https://api.spotify.com/${endpoint}`, {
+        const res = await fetch(`https://api.spotify.com/${endpoint}`, {
             headers: {
-                Authorization: `Bearer ${req.cookies.access_token}`,
+                Authorization: `Bearer ${token}`,
             },
             method,
             body: JSON.stringify(body),
         });
-        const result = await response.json();
-        return result;
+        return await res.json();
     }
 
     async function getTopTracks() {
@@ -208,28 +210,6 @@ app.get("/yourplaylist", async (req, res) => {
         );
         return response.items;
     }
-
-    // Fetch user data so I can get user ID
-    // const options = {
-    //     url: "https://api.spotify.com/v1/me",
-    //     headers: {
-    //         Authorization: "Bearer " + access_token,
-    //     },
-    // };
-
-    // axios
-    //     .get(options.url, {
-    //         headers: options.headers,
-    //     })
-    //     .then((response) => {
-            
-    //     })
-    //     .catch((error) => {
-    //         console.error(error);
-    //         res.status(500).send(
-    //             "Error occurred while fetching data from Spotify API."
-    //         );
-    //     });
 
     // Get recommended songs
     async function getRecommendedTracks(track_id) {
